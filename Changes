@@ -1,0 +1,15 @@
+Changes for String::PerlIdentifier
+
+Nov 18 2005
+Finished version 0.02.
+
+Nov 19 2005
+Finished version 0.03.  First CPAN upload, under name String::MkVarName.
+
+Nov 25 2005
+Finished version 0.04.  On advice of brian d foy, name was changed to
+String::PerlIdentifier.
+
+Apr 21 2006
+Finished version 0.05.  Added 'no underscores' option and related tests and
+documentation.

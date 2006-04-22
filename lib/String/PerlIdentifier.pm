@@ -3,13 +3,14 @@ use 5.006001;
 use strict;
 use base qw(Exporter);
 our @EXPORT = qw{ make_varname };
-our $VERSION = "0.04";
+our $VERSION = "0.05";
 use Carp;
 
 our @lower =  qw(a b c d e f g h i j k l m n o p q r s t u v w x y z);
 our @upper = map { uc($_) } @lower;
-our @eligibles = (@upper, @lower, q{_});
-our @chars = (@eligibles, 0..9);
+#our @eligibles = (@upper, @lower, q{_});
+#our @chars = (@eligibles, 0..9);
+our @alphas = (@upper, @lower);
 
 our %forbidden = ();
 our $MIN = 3;
@@ -18,8 +19,14 @@ our $DEFAULT = 10;
 
 sub make_varname {
     my $length;
+    my (@eligibles, @chars);
+    my $scoresflag = 1;
     if (defined $_[0] and ref($_[0]) eq 'HASH') {
         my $argsref = shift;
+        if ( (defined $argsref->{underscores}) &&
+             ($argsref->{underscores} == 0) ) {
+                 $scoresflag = 0;
+        }
         if (defined $argsref->{min}) {
             croak "Minimum must be all numerals: $!"
                 unless $argsref->{min} =~ /^\d+$/;
@@ -50,6 +57,9 @@ sub make_varname {
     $length = $DEFAULT if ! defined $length;
     $length = $MIN if $length < $MIN;
     $length = $MAX if $length > $MAX;
+    @eligibles = $scoresflag ? (@alphas, q{_}) : (@alphas) ;
+    @chars     = (@eligibles, 0..9);
+        
     my $varname;
     MKVAR: {
         $varname = $eligibles[int(rand(@eligibles))];
@@ -67,7 +77,7 @@ String::PerlIdentifier - Generate a random name for a Perl variable
 
 =head1 VERSION
 
-This document refers to version 0.04, released November 25, 2005.
+This document refers to version 0.05, released April 21, 2004.
 
 =head1 SYNOPSIS
 
@@ -85,6 +95,12 @@ or
         min     => $minimum,
         max     => $maximum,
         default => $default,
+    } );
+
+or
+
+    $varname = make_varname( {      # no underscores in strings;
+        underscores => 0,           # alphanumerics only
     } );
 
 =head1 DESCRIPTION
@@ -106,6 +122,7 @@ containing one or more of the following keys:
     min
     max
     default
+    underscores
 
 So if you wanted your string to contain a minimum of 15 characters and a
 maximum of 30, you would call:
@@ -117,7 +134,20 @@ and C<croak>.  But if you set C<default> less than C<min> or greater than
 C<max>, the default value will be raised to the minimum or lowered to the
 maximum as is appropriate.
 
-B<Note:>  Although the strings returned by C<make_varname()> qualify as Perl
+=head2 No underscores option
+
+The only meaningful value for key C<underscores> is C<0>.
+String::PerlIdentifier, like Perl itself, assumes that underscores are valid
+parts of identifiers, so underscores are ''on'' by default.  So the only time
+you need to worry about the C<underscores> element in the hash passed by
+reference to C<make_varname()> is when you want to I<prevent> underscores from
+being part of the string being generated -- in which case you set:
+
+    underscores => 0
+
+=head2 Non-Perl-identifier usages
+
+Although the strings returned by C<make_varname()> qualify as Perl
 identifiers, they also are a subset of the set of valid directory and file
 names on operating systems such as Unix and Windows.  This is how, for
 instance, this module's author uses C<make_varname()>.
